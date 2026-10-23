@@ -1566,6 +1566,34 @@
   }
 
   /* ======================================================================
+     18. EXPAND / COLLAPSE EXPERIENCE DETAILS
+     Adds a "Show details" button above each .timeline-more panel. The
+     panels are visible in the HTML, so without JavaScript nothing is lost.
+     ====================================================================== */
+  function initTimelineDetails() {
+    $$('.timeline-more').forEach(function (panel) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'timeline-toggle';
+      button.textContent = 'Show details';
+      button.setAttribute('aria-expanded', 'false');
+      if (panel.id) button.setAttribute('aria-controls', panel.id);
+
+      panel.classList.add('is-collapsible');
+      // Hidden from screen readers while collapsed, matching what is seen
+      panel.setAttribute('aria-hidden', 'true');
+      panel.parentNode.insertBefore(button, panel);
+
+      button.addEventListener('click', function () {
+        var isOpen = panel.classList.toggle('is-open');
+        button.setAttribute('aria-expanded', String(isOpen));
+        button.textContent = isOpen ? 'Hide details' : 'Show details';
+        panel.setAttribute('aria-hidden', String(!isOpen));
+      });
+    });
+  }
+
+  /* ======================================================================
      19. ONLINE / OFFLINE NOTICES
      ====================================================================== */
   function initConnectionStatus() {
@@ -1616,6 +1644,7 @@
     initGreeting();
     initTypeEffect();
     initProjectFilter();      // before initReveal, so hidden cards are settled first
+    initTimelineDetails();
     initReveal();
     initCounters();
     initForm();

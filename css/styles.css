@@ -818,6 +818,44 @@ button { font: inherit; cursor: pointer; }
 }
 .timeline-desc { color: var(--muted); margin: 0; max-width: 70ch; }
 
+/* Expand / collapse. Animating grid rows from 0fr to 1fr slides the panel
+   open to its natural height - no measuring in JavaScript. Collapsing is
+   opt-in via .is-collapsible, so without JS the details stay visible. */
+.timeline-more { display: grid; grid-template-rows: 1fr; margin-top: 0.85rem; }
+/* Spacing lives on the panel, not the child: padding inside a 0fr row
+   would still take up room while collapsed. */
+.timeline-more > * { min-height: 0; overflow: hidden; }
+
+.timeline-more.is-collapsible {
+  transition: grid-template-rows 0.4s var(--ease), opacity 0.4s var(--ease),
+              margin-top 0.4s var(--ease);
+}
+.timeline-more.is-collapsible:not(.is-open) { grid-template-rows: 0fr; opacity: 0; margin-top: 0; }
+
+.timeline-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  padding: 0.2rem 0;
+  background: none;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--gold);
+}
+.timeline-toggle:hover { color: var(--gold-soft); }
+.timeline-toggle::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.3s var(--ease);
+}
+.timeline-toggle[aria-expanded="true"]::after { transform: translateY(1px) rotate(-135deg); }
+
 /* ==========================================================================
    12. EDUCATION
    ========================================================================== */
