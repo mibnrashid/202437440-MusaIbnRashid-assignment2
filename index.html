@@ -111,7 +111,19 @@
             <p class="term-line">
               <span class="prompt">&rsaquo;</span>
               <span id="greeting">Welcome.</span>
+              <button class="term-link" id="nameChange" type="button" hidden>change name</button>
             </p>
+
+            <!-- Visitor's name is saved to localStorage and personalises the greeting -->
+            <form class="term-form" id="nameForm" novalidate hidden>
+              <label class="term-label" for="visitorName"><span class="prompt">&rsaquo;</span>your name?</label>
+              <input class="term-input" type="text" id="visitorName" name="visitorName"
+                     maxlength="30" autocomplete="given-name" placeholder="type it and press Enter"
+                     aria-describedby="visitorNameError">
+              <button class="term-link" type="submit">save</button>
+              <p class="term-error" id="visitorNameError" role="alert"></p>
+            </form>
+
             <p class="term-line">
               <span class="prompt">&rsaquo;</span>
               <span class="term-cmd">whoami</span>
@@ -776,9 +788,16 @@
             <button type="submit" class="btn btn-primary btn-block">Send message</button>
 
             <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+
+            <!-- After a valid submit: hands the message to the visitor's own email app -->
+            <a class="btn btn-ghost btn-block form-mailto" id="formMailto" href="mailto:m.ibnrashid@gmail.com" hidden>
+              Open in your email app <span aria-hidden="true">&rarr;</span>
+            </a>
+
             <p class="form-note">
-              This form is a front-end demo for the assignment &mdash; there is no backend, so
-              nothing is transmitted. Use the email link for a real message.
+              There is no backend, so this page never transmits your message. After it validates,
+              the button above opens it, pre-filled, in your own email app. Your draft is saved
+              in this browser as you type, so it survives a reload.
             </p>
           </form>
         </div>
