@@ -975,14 +975,27 @@ button { font: inherit; cursor: pointer; }
   color: var(--danger);
 }
 
+/* Short horizontal shake on a field that fails validation on submit */
+.field.is-shaking input,
+.field.is-shaking textarea { animation: shake 0.4s var(--ease); }
+@keyframes shake {
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
 .form-status {
   margin: 1rem 0 0;
   font-family: var(--font-mono);
   font-size: 0.83rem;
   min-height: 1.2rem;
 }
-.form-status.is-success { color: var(--term-green); }
-.form-status.is-error   { color: var(--danger); }
+.form-status.is-success { color: var(--term-green); animation: slide-in 0.35s var(--ease); }
+.form-status.is-error   { color: var(--danger);     animation: slide-in 0.35s var(--ease); }
+@keyframes slide-in {
+  from { opacity: 0; transform: translateY(-6px); }
+}
+
+.form-mailto { margin-top: 0.75rem; animation: slide-in 0.35s var(--ease); }
 
 .form-note {
   margin: 0.85rem 0 0;
@@ -1153,6 +1166,37 @@ button { font: inherit; cursor: pointer; }
 }
 .term-link:hover { color: var(--gold); }
 .term-line .term-link { margin-left: auto; }
+
+/* --- Visitor name prompt inside the hero terminal --- */
+.term-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+  margin: 0 0 0.45rem;
+}
+.term-label { color: var(--text); white-space: nowrap; }
+.term-input {
+  flex: 1;
+  min-width: 9rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-plain);
+  color: var(--term-green);
+  font: inherit;
+  caret-color: var(--term-green);
+}
+.term-input:focus { outline: none; border-bottom-color: var(--gold); }
+.term-input::placeholder { color: var(--muted); opacity: 0.6; }
+.term-error {
+  flex-basis: 100%;
+  margin: 0;
+  padding-left: 1.05rem;
+  font-size: 0.75rem;
+  color: var(--danger);
+}
+.term-error:empty { display: none; }
 
 /* --- Toolbar: filter chips, search, selects --- */
 .toolbar {

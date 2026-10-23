@@ -303,22 +303,100 @@
   }
 
   /* ======================================================================
-     7. TIME-OF-DAY GREETING
+     7. PERSONALISED GREETING
+     Time-of-day greeting from Assignment 1, now combined with the visitor's
+     name. The name is validated, saved to localStorage, and reused to
+     pre-fill the contact form.
      ====================================================================== */
+
+  /* Letters (any alphabet, so Arabic names work), spaces, hyphens and
+     apostrophes are fine. Digits and symbols are rejected. Written as a
+     blacklist because Unicode property escapes (\p{L}) would be a syntax
+     error in older browsers and take the whole script down with them. */
+  var NAME_INVALID = /[0-9<>{}\[\]()@#$%^&*_=+\\|\/~`"!?;:.,]/;
+
   function initGreeting() {
     var element = $('#greeting');
     if (!element) return;
 
-    var hour = new Date().getHours();
-    var greeting;
+    var form = $('#nameForm');
+    var input = $('#visitorName');
+    var error = $('#visitorNameError');
+    var change = $('#nameChange');
 
-    if (hour < 5)       greeting = 'Up late. Welcome.';
-    else if (hour < 12) greeting = 'Good morning. Welcome.';
-    else if (hour < 17) greeting = 'Good afternoon. Welcome.';
-    else if (hour < 21) greeting = 'Good evening. Welcome.';
-    else                greeting = 'Good night. Welcome.';
+    function timeOfDay() {
+      var hour = new Date().getHours();
+      if (hour < 5)  return 'Up late';
+      if (hour < 12) return 'Good morning';
+      if (hour < 17) return 'Good afternoon';
+      if (hour < 21) return 'Good evening';
+      return 'Good night';
+    }
 
-    element.textContent = greeting;
+    function render() {
+      var name = storage.get(KEYS.name);
+
+      element.textContent = name
+        ? timeOfDay() + ', ' + name + '. Welcome back.'
+        : timeOfDay() + '. Welcome.';
+
+      if (form) form.hidden = Boolean(name);
+      if (change) change.hidden = !name;
+    }
+
+    function validate(value) {
+      if (!value) return 'Type a name first, then press Enter.';
+      if (value.length < 2) return 'That name looks too short.';
+      if (NAME_INVALID.test(value)) return 'Letters only, please - no numbers or symbols.';
+      return '';
+    }
+
+    render();
+    if (!form || !input) return;
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      // Collapse repeated spaces so "  Sara   Ali " is stored as "Sara Ali"
+      var value = input.value.trim().replace(/\s+/g, ' ');
+      var message = validate(value);
+
+      error.textContent = message;
+      input.setAttribute('aria-invalid', String(Boolean(message)));
+      if (message) return;
+
+      storage.set(KEYS.name, value);
+      render();
+      toast('Nice to meet you, ' + value + '. This browser will remember you.', 'success');
+
+      var contactName = $('#name');
+      if (contactName && !contactName.value) contactName.value = value;
+
+      if (change) change.focus();
+    });
+
+    // Clear the error as soon as the visitor starts correcting it
+    input.addEventListener('input', function () {
+      if (error.textContent) {
+        error.textContent = '';
+        input.setAttribute('aria-invalid', 'false');
+      }
+    });
+
+    if (change) {
+      change.addEventListener('click', function () {
+        form.hidden = false;
+        change.hidden = true;
+        input.value = storage.get(KEYS.name) || '';
+        input.focus();
+        input.select();
+      });
+    }
+
+    document.addEventListener(RESET_EVENT, function () {
+      input.value = '';
+      render();
+    });
   }
 
   /* ======================================================================
@@ -450,16 +528,22 @@
   }
 
   /* ======================================================================
-     11. CONTACT FORM VALIDATION
-     There is no backend for this assignment, so a valid submission is
-     acknowledged in the interface and nothing is sent anywhere.
+     11. CONTACT FORM
+     There is no backend, so nothing is sent from the page. A valid message
+     is handed to the visitor's own email app through a pre-filled mailto:
+     link. The draft is autosaved so a reload or accidental close loses
+     nothing.
      ====================================================================== */
   function initForm() {
     var form = $('#contactForm');
     if (!form) return;
 
     var status = $('#formStatus');
+    var mailto = $('#formMailto');
     var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    var RECIPIENT = 'm.ibnrashid@gmail.com';
+    var SAVE_DELAY_MS = 400;
+    var saveTimer = null;
 
     var rules = {
       name: function (value) {
@@ -469,7 +553,7 @@
       },
       email: function (value) {
         if (!value) return 'Please enter your email address.';
-        if (!EMAIL_PATTERN.test(value)) return 'Please enter a valid email address.';
+        if (!EMAIL_PATTERN.test(value)) return 'Please enter a valid email address, like name@example.com.';
         return '';
       },
       message: function (value) {
@@ -478,6 +562,7 @@
         return '';
       }
     };
+    var fields = Object.keys(rules);
 
     function validateField(name) {
       var input = $('#' + name);
@@ -493,41 +578,115 @@
       return !message;
     }
 
+    function values() {
+      var result = {};
+      fields.forEach(function (name) { result[name] = $('#' + name).value; });
+      return result;
+    }
+
+    function clearStatus() {
+      status.textContent = '';
+      status.className = 'form-status';
+      if (mailto) mailto.hidden = true;
+    }
+
+    /* --- Draft autosave --- */
+    function saveDraft() {
+      var draft = values();
+      var hasContent = fields.some(function (name) { return draft[name].trim(); });
+      if (hasContent) storage.setJSON(KEYS.draft, draft);
+      else storage.remove(KEYS.draft);
+    }
+
+    function restoreDraft() {
+      var draft = storage.getJSON(KEYS.draft);
+      if (draft && typeof draft === 'object') {
+        fields.forEach(function (name) {
+          if (typeof draft[name] === 'string') $('#' + name).value = draft[name];
+        });
+        toast('Restored your unsent message draft.');
+      }
+
+      // Otherwise use the name given in the hero terminal, if any
+      var nameInput = $('#name');
+      var savedName = storage.get(KEYS.name);
+      if (!nameInput.value && savedName) nameInput.value = savedName;
+    }
+
+    restoreDraft();
+
     // Validate on blur, then live-correct once a field is already marked wrong
-    Object.keys(rules).forEach(function (name) {
+    fields.forEach(function (name) {
       var input = $('#' + name);
       if (!input) return;
 
       input.addEventListener('blur', function () { validateField(name); });
       input.addEventListener('input', function () {
         if (input.closest('.field').classList.contains('has-error')) validateField(name);
+
+        // Editing again means the last confirmation no longer applies
+        if (status.textContent) clearStatus();
+
+        // Debounced, so typing is not slowed by a write on every keystroke
+        window.clearTimeout(saveTimer);
+        saveTimer = window.setTimeout(saveDraft, SAVE_DELAY_MS);
       });
+    });
+
+    /* Replays the shake animation on every field that failed */
+    function shakeInvalid() {
+      $$('.field.has-error', form).forEach(function (field) {
+        field.classList.remove('is-shaking');
+        void field.offsetWidth;            // forces a reflow so the animation restarts
+        field.classList.add('is-shaking');
+      });
+    }
+
+    form.addEventListener('animationend', function (event) {
+      var field = event.target.closest('.field');
+      if (field) field.classList.remove('is-shaking');
     });
 
     form.addEventListener('submit', function (event) {
       event.preventDefault();
 
       // Runs every field so all problems are shown at once, not one at a time
-      var results = Object.keys(rules).map(validateField);
+      var results = fields.map(validateField);
       var isValid = results.every(Boolean);
 
       if (!isValid) {
-        status.textContent = 'Please fix the highlighted fields.';
+        var count = results.filter(function (ok) { return !ok; }).length;
+        status.textContent = count === 1
+          ? 'One field needs fixing - see the message under it.'
+          : count + ' fields need fixing - see the messages under them.';
         status.className = 'form-status is-error';
-        var firstBad = $('.field.has-error input, .field.has-error textarea');
+        if (mailto) mailto.hidden = true;
+        shakeInvalid();
+        var firstBad = $('.field.has-error input, .field.has-error textarea', form);
         if (firstBad) firstBad.focus();
         return;
       }
 
-      var name = $('#name').value.trim().split(' ')[0];
-      status.textContent = 'Thanks, ' + name + ' - your message has been validated.';
-      status.className = 'form-status is-success';
-      form.reset();
+      var data = values();
+      var fullName = data.name.trim();
+      var firstName = fullName.split(' ')[0];
 
-      window.setTimeout(function () {
-        status.textContent = '';
-        status.className = 'form-status';
-      }, 6000);
+      if (mailto) {
+        var subject = 'Portfolio message from ' + fullName;
+        var body = data.message.trim() + '\n\n- ' + fullName + ' (' + data.email.trim() + ')';
+        mailto.href = 'mailto:' + RECIPIENT +
+          '?subject=' + encodeURIComponent(subject) +
+          '&body=' + encodeURIComponent(body);
+        mailto.hidden = false;
+      }
+
+      status.textContent = 'Thanks, ' + firstName + ' - your message is ready. ' +
+        'Open it in your email app below to send it.';
+      status.className = 'form-status is-success';
+
+      window.clearTimeout(saveTimer);
+      storage.remove(KEYS.draft);
+      form.reset();
     });
   }
 
@@ -545,10 +704,15 @@
       function done() {
         button.textContent = 'copied';
         button.classList.add('is-copied');
+        toast('Email address copied to your clipboard.', 'success');
         window.setTimeout(function () {
           button.textContent = 'copy';
           button.classList.remove('is-copied');
         }, 1800);
+      }
+
+      function failed() {
+        toast('Could not copy automatically - select the address and copy it by hand.', 'error');
       }
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -566,8 +730,10 @@
         field.style.left = '-9999px';
         document.body.appendChild(field);
         field.select();
-        try { document.execCommand('copy'); done(); } catch (e) { /* ignore */ }
+        var copied = false;
+        try { copied = document.execCommand('copy'); } catch (e) { /* reported below */ }
         document.body.removeChild(field);
+        if (copied) done(); else failed();
       }
     });
   }
