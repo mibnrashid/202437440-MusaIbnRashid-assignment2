@@ -752,6 +752,173 @@
   }
 
   /* ======================================================================
+     16. PROJECT FILTER, SEARCH AND SORT
+     The project cards are plain HTML (so they exist without JavaScript).
+     This module reads each card's data-category / data-date / data-impact
+     attributes, then hides and reorders the cards to match the controls.
+     The chosen category and sort order are remembered in localStorage.
+     ====================================================================== */
+  function initProjectFilter() {
+    var list = $('#projectList');
+    var toolbar = $('#projectToolbar');
+    if (!list || !toolbar) return;
+
+    var chips = $$('.chip', toolbar);
+    var search = $('#projectSearch');
+    var sort = $('#projectSort');
+    var count = $('#projectCount');
+    var empty = $('#projectEmpty');
+    var emptyQuery = $('#projectEmptyQuery');
+    var resetButton = $('#projectReset');
+
+    var DEFAULTS = { filter: 'all', sort: 'impact' };
+
+    /* Read every card once up front, rather than querying the DOM on each
+       keystroke. The search text covers title, description and tags. */
+    var projects = $$('.project', list).map(function (card) {
+      return {
+        card: card,
+        categories: (card.getAttribute('data-category') || '').split(' '),
+        date: card.getAttribute('data-date') || '',
+        impact: parseInt(card.getAttribute('data-impact'), 10) || 99,
+        title: ($('.project-title', card) || card).textContent.trim(),
+        text: card.textContent.replace(/\s+/g, ' ').toLowerCase()
+      };
+    });
+
+    var comparators = {
+      impact: function (a, b) { return a.impact - b.impact; },
+      newest: function (a, b) { return b.date.localeCompare(a.date) || a.impact - b.impact; },
+      az:     function (a, b) { return a.title.localeCompare(b.title); }
+    };
+
+    var validFilters = chips.map(function (chip) { return chip.getAttribute('data-filter'); });
+    var saved = storage.getJSON(KEYS.projectView) || {};
+
+    // Saved values are checked, so an old or edited entry cannot break the page
+    var state = {
+      filter: validFilters.indexOf(saved.filter) > -1 ? saved.filter : DEFAULTS.filter,
+      sort: comparators[saved.sort] ? saved.sort : DEFAULTS.sort,
+      query: ''
+    };
+
+    function inCategory(project, filter) {
+      return filter === 'all' || project.categories.indexOf(filter) > -1;
+    }
+
+    // Each chip shows how many projects it contains, e.g. "AI 4"
+    chips.forEach(function (chip) {
+      var filter = chip.getAttribute('data-filter');
+      var total = projects.filter(function (project) { return inCategory(project, filter); }).length;
+      var badge = document.createElement('span');
+      badge.className = 'chip-count';
+      badge.textContent = total;
+      chip.appendChild(badge);
+    });
+
+    function chipLabel(filter) {
+      var chip = $('.chip[data-filter="' + filter + '"]', toolbar);
+      return chip ? chip.firstChild.textContent.trim() : filter;
+    }
+
+    function apply(animate) {
+      var query = state.query.toLowerCase();
+      var visible = [];
+
+      projects.slice().sort(comparators[state.sort]).forEach(function (project) {
+        // Re-appending moves the existing node, which reorders the grid
+        list.appendChild(project.card);
+
+        var match = inCategory(project, state.filter) && (!query || project.text.indexOf(query) > -1);
+        project.card.classList.toggle('is-hidden', !match);
+        if (match) visible.push(project.card);
+      });
+
+      // On first load the scroll-reveal fades the cards in; after that, each
+      // change replays a short staggered entrance.
+      if (animate) {
+        visible.forEach(function (card, index) {
+          // A card that was filtered out never passed the scroll-reveal
+          // observer, so it is marked visible here before animating in.
+          card.classList.add('is-visible');
+          if (prefersReducedMotion) return;
+          card.classList.remove('is-entering');
+          void card.offsetWidth;            // restarts the animation
+          card.style.animationDelay = (index * 45) + 'ms';
+          card.classList.add('is-entering');
+        });
+      }
+
+      chips.forEach(function (chip) {
+        chip.setAttribute('aria-pressed', String(chip.getAttribute('data-filter') === state.filter));
+      });
+      sort.value = state.sort;
+
+      // Result summary, e.g. 'Showing 2 of 7 projects in AI matching "kaust"'
+      var summary = 'Showing ' + visible.length + ' of ' + projects.length + ' projects';
+      if (state.filter !== 'all') summary += ' in ' + chipLabel(state.filter);
+      if (state.query) summary += ' matching "' + state.query + '"';
+      count.textContent = summary;
+
+      empty.hidden = visible.length > 0;
+      if (!visible.length) {
+        emptyQuery.textContent = (state.query ? '"' + state.query + '"' : 'this filter') +
+          (state.filter !== 'all' ? ' in ' + chipLabel(state.filter) : '');
+      }
+
+      storage.setJSON(KEYS.projectView, { filter: state.filter, sort: state.sort });
+    }
+
+    chips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        state.filter = chip.getAttribute('data-filter');
+        apply(true);
+      });
+    });
+
+    search.addEventListener('input', function () {
+      state.query = search.value.trim();
+      apply(true);
+    });
+
+    // Escape clears the search box, the way most search fields behave
+    search.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && search.value) {
+        event.stopPropagation();
+        search.value = '';
+        state.query = '';
+        apply(true);
+      }
+    });
+
+    sort.addEventListener('change', function () {
+      state.sort = sort.value;
+      apply(true);
+    });
+
+    function resetFilters() {
+      state.filter = DEFAULTS.filter;
+      state.query = '';
+      search.value = '';
+      apply(true);
+    }
+
+    resetButton.addEventListener('click', function () {
+      resetFilters();
+      search.focus();
+    });
+
+    document.addEventListener(RESET_EVENT, function () {
+      state.sort = DEFAULTS.sort;
+      resetFilters();
+      storage.remove(KEYS.projectView);
+    });
+
+    toolbar.hidden = false;
+    apply(false);
+  }
+
+  /* ======================================================================
      19. ONLINE / OFFLINE NOTICES
      ====================================================================== */
   function initConnectionStatus() {
@@ -801,6 +968,7 @@
     initScrollSpy();
     initGreeting();
     initTypeEffect();
+    initProjectFilter();      // before initReveal, so hidden cards are settled first
     initReveal();
     initCounters();
     initForm();
