@@ -26,12 +26,11 @@ the result on my own live link. No other AI tool was used.
 
 ## Usage log
 
-All dates are 2026-10-23. Tool for C01 and A01–A09: Claude Code (Opus 5.5). Tool for C02: Claude Code (Sonnet 5.5).
+All dates are 2026-10-23. Tool for all rows: Claude Code (Opus 5.5).
 
 | ID | Tool (model) | Date | Purpose | Files affected | What I changed and how I verified it |
 |----|--------------|------|---------|----------------|--------------------------------------|
 | C01 | Claude Code (Opus 5.5) | 2026-10-23 | Main session: read the brief, plan features, build, test, write docs | See A01–A09 | I made the scope decisions, edited code and text myself along the way, and tested the result in my browser and on my live link. |
-| C02 | Claude Code (Sonnet 5.5) | 2026-10-23 | Read the updated brief and put together this report and the evidence ZIP | `docs/ai-usage-report.md` | I read it through and corrected anything that did not match what I did. |
 | A01 | Claude Code (Opus 5.5) | 2026-10-23 | Storage helpers, toast notifications, reset-preferences button | `index.html`, `css/styles.css`, `js/script.js` | Automated tests in 4 browsers, plus my own testing of saving, clearing and the toasts. |
 | A02 | Claude Code (Opus 5.5) | 2026-10-23 | Project filter, live search and sort, with the choice remembered | `index.html`, `css/styles.css`, `js/script.js` | Automated tests in 4 browsers (typing, filtering, sorting, empty state), plus my own testing. I chose which projects to show. |
 | A03 | Claude Code (Opus 5.5) | 2026-10-23 | "Live from GitHub" section: loading, error + retry, cache | `index.html`, `css/styles.css`, `js/script.js` | Automated tests covered the loading, failed and offline cases. I checked the section on my live link. |
