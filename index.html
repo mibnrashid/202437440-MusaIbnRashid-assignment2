@@ -63,6 +63,7 @@
         <li><a href="#about"><span class="nav-slash">/</span>about</a></li>
         <li><a href="#skills"><span class="nav-slash">/</span>skills</a></li>
         <li><a href="#projects"><span class="nav-slash">/</span>projects</a></li>
+        <li><a href="#github"><span class="nav-slash">/</span>github</a></li>
         <li><a href="#experience"><span class="nav-slash">/</span>experience</a></li>
         <li><a href="#education"><span class="nav-slash">/</span>education</a></li>
         <li><a href="#awards"><span class="nav-slash">/</span>awards</a></li>
@@ -524,10 +525,73 @@
       </div>
     </section>
 
+    <!-- ============================= GITHUB (live API) ============================= -->
+    <section class="section" id="github">
+      <div class="container">
+        <h2 class="section-title reveal"><span class="section-index">04</span>Live from GitHub</h2>
+
+        <p class="section-lead reveal">
+          Every public repository on my GitHub, fetched live from the GitHub REST API &mdash;
+          course work, hackathon forks and experiments included.
+        </p>
+
+        <!-- Profile numbers are derived from the fetched repositories -->
+        <ul class="gh-summary" id="ghSummary" aria-label="GitHub summary" hidden></ul>
+
+        <div class="toolbar" id="ghToolbar" hidden>
+          <div class="toolbar-fields">
+            <label class="search">
+              <span class="visually-hidden">Search repositories</span>
+              <input type="search" id="ghSearch" placeholder="Search repositories..." autocomplete="off">
+            </label>
+            <label class="select">
+              <span class="select-label">Language</span>
+              <select id="ghLanguage">
+                <option value="all">All</option>
+              </select>
+            </label>
+            <label class="select">
+              <span class="select-label">Sort</span>
+              <select id="ghSort">
+                <option value="updated">Recently updated</option>
+                <option value="stars">Most stars</option>
+                <option value="name">Name</option>
+              </select>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="ghForks" checked>
+              <span>Include forks</span>
+            </label>
+          </div>
+        </div>
+
+        <p class="result-count" id="ghStatus" role="status" aria-live="polite">Loading repositories&hellip;</p>
+
+        <div class="repo-grid" id="ghList" aria-busy="true"></div>
+
+        <!-- Error and empty states - filled in by script.js -->
+        <div class="empty-state" id="ghMessage" hidden>
+          <p class="empty-title" id="ghMessageTitle"></p>
+          <p class="empty-hint" id="ghMessageHint"></p>
+          <button class="btn btn-ghost" id="ghMessageAction" type="button"></button>
+        </div>
+
+        <div class="gh-footer">
+          <button class="btn btn-ghost" id="ghMore" type="button" hidden>Show more</button>
+          <p class="gh-meta" id="ghMeta"></p>
+        </div>
+
+        <noscript>
+          <p class="empty-hint">This list is loaded with JavaScript. You can browse the same repositories at
+            <a href="https://github.com/mibnrashid?tab=repositories">github.com/mibnrashid</a>.</p>
+        </noscript>
+      </div>
+    </section>
+
     <!-- ============================= EXPERIENCE ============================= -->
     <section class="section" id="experience">
       <div class="container">
-        <h2 class="section-title reveal"><span class="section-index">04</span>Experience</h2>
+        <h2 class="section-title reveal"><span class="section-index">05</span>Experience</h2>
 
         <ol class="timeline">
           <li class="timeline-item reveal">
@@ -599,7 +663,7 @@
     <!-- ============================= EDUCATION ============================= -->
     <section class="section" id="education">
       <div class="container">
-        <h2 class="section-title reveal"><span class="section-index">05</span>Education</h2>
+        <h2 class="section-title reveal"><span class="section-index">06</span>Education</h2>
 
         <div class="edu-grid">
           <article class="edu-card reveal">
@@ -629,7 +693,7 @@
     <!-- ============================= AWARDS ============================= -->
     <section class="section" id="awards">
       <div class="container">
-        <h2 class="section-title reveal"><span class="section-index">06</span>Awards &amp; Certifications</h2>
+        <h2 class="section-title reveal"><span class="section-index">07</span>Awards &amp; Certifications</h2>
 
         <ul class="awards">
           <li class="award reveal">
@@ -667,7 +731,7 @@
     <!-- ============================= CONTACT ============================= -->
     <section class="section" id="contact">
       <div class="container">
-        <h2 class="section-title reveal"><span class="section-index">07</span>Contact</h2>
+        <h2 class="section-title reveal"><span class="section-index">08</span>Contact</h2>
 
         <div class="contact-grid">
           <div class="contact-intro reveal">

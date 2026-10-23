@@ -1264,6 +1264,120 @@ button { font: inherit; cursor: pointer; }
 .empty-hint { margin: 0 0 1rem; max-width: 46ch; font-size: 0.92rem; color: var(--muted); }
 .empty-state.is-error .empty-title { color: var(--danger); }
 
+/* --- GitHub feed --- */
+.section-lead { max-width: 62ch; color: var(--muted); margin-bottom: 1.75rem; }
+
+.gh-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+.gh-summary li {
+  padding: 0.45rem 0.85rem;
+  background: var(--bg-elev);
+  border: 1px solid var(--border-plain);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.gh-summary strong { color: var(--gold); font-weight: 700; margin-right: 0.3rem; }
+
+.repo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 0.9rem;
+}
+
+.repo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1.1rem 1.2rem;
+  background: var(--bg-elev);
+  border: 1px solid var(--border-plain);
+  border-radius: var(--radius);
+  color: inherit;
+  transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
+  animation: card-in 0.4s var(--ease) both;
+}
+.repo-card:hover { border-color: var(--border); transform: translateY(-3px); text-decoration: none; }
+
+.repo-head { display: flex; align-items: baseline; gap: 0.5rem; }
+.repo-name {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--gold);
+  overflow-wrap: anywhere;
+}
+.repo-badge {
+  margin-left: auto;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--border-plain);
+  border-radius: 100px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.repo-desc {
+  flex: 1;
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.repo-desc.is-empty { font-style: italic; opacity: 0.7; }
+.repo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+.repo-lang::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 0.35rem;
+  border-radius: 50%;
+  background: var(--lang-color, var(--muted));
+}
+
+/* Loading skeletons: a soft highlight sweeps across placeholder cards */
+.repo-card.is-skeleton { pointer-events: none; animation: none; }
+.skeleton-line {
+  height: 0.7rem;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--bg-elev-2) 25%, var(--border-plain) 50%, var(--bg-elev-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+.skeleton-line.is-title { width: 55%; height: 0.85rem; }
+.skeleton-line.is-short { width: 35%; }
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+.gh-footer {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+.gh-meta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-align: center;
+}
+
 /* --- Toast notifications --- */
 .toasts {
   position: fixed;
@@ -1402,6 +1516,8 @@ button { font: inherit; cursor: pointer; }
 
   .reveal { opacity: 1; transform: none; }
   .cursor { animation: none; }
+  /* Skeletons stay as a still placeholder instead of sweeping */
+  .skeleton-line { animation: none; }
 }
 
 /* If JavaScript is unavailable the reveal animation must not hide content */
