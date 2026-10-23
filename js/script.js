@@ -1,26 +1,34 @@
 /* ==========================================================================
    Musa Ibn Rashid - Portfolio
-   Assignment 1: Foundation & AI Integration
+   Assignment 2: Interactive Features (built on Assignment 1)
 
    Each feature lives in its own small module below and is started from init()
    at the bottom. Every module checks that its elements exist first, so the
    file stays safe if a section is ever removed from index.html.
 
-   Features
+   Features carried over from Assignment 1
      1.  Theme toggle (dark default, saved to localStorage)
      2.  Scroll progress bar
      3.  Sticky header state
      4.  Mobile navigation
      5.  Smooth scrolling (with a fallback for older browsers)
      6.  Scrollspy - highlights the nav link for the section in view
-     7.  Time-of-day greeting
+     7.  Greeting - now personalised with the visitor's saved name   [A2]
      8.  Rotating role typing effect
      9.  Scroll-reveal animations
      10. Animated statistic counters
-     11. Contact form validation
-     12. Copy-to-clipboard email
+     11. Contact form - now with draft autosave, shake, mailto hand-off [A2]
+     12. Copy-to-clipboard email - now confirmed with a toast        [A2]
      13. Back-to-top button
-     14. Command palette (Ctrl/Cmd + K)
+     14. Command palette (/ or Ctrl/Cmd + K) - new commands         [A2]
+
+   New in Assignment 2
+     15. Toast notifications
+     16. Project filter, live search and sort
+     17. Live GitHub repositories (public API, cache, error states)
+     18. Expand / collapse experience details
+     19. Online / offline notices
+     20. Reset saved preferences
    ========================================================================== */
 
 (function () {
@@ -752,7 +760,7 @@
   }
 
   /* ======================================================================
-     14. COMMAND PALETTE (Ctrl/Cmd + K)
+     14. COMMAND PALETTE (/ or Ctrl/Cmd + K)
      A keyboard-first way to jump between sections and run page actions.
      ====================================================================== */
   function initCommandPalette() {
@@ -762,20 +770,46 @@
     var openButton = $('#cmdkOpen');
     if (!palette || !input || !list) return;
 
+    /* Clicks a control elsewhere on the page, so each command reuses the
+       real feature instead of duplicating its logic. */
+    function press(selector) {
+      var element = $(selector);
+      if (element) element.click();
+    }
+
+    function showProjects(filter) {
+      goTo('#projects');
+      press('.chip[data-filter="' + filter + '"]');
+    }
+
     var commands = [
-      { label: 'About',              kind: 'section', icon: '#', run: function () { goTo('#about'); } },
-      { label: 'Skills',             kind: 'section', icon: '#', run: function () { goTo('#skills'); } },
-      { label: 'Projects',           kind: 'section', icon: '#', run: function () { goTo('#projects'); } },
-      { label: 'Experience',         kind: 'section', icon: '#', run: function () { goTo('#experience'); } },
-      { label: 'Education',          kind: 'section', icon: '#', run: function () { goTo('#education'); } },
-      { label: 'Awards',             kind: 'section', icon: '#', run: function () { goTo('#awards'); } },
-      { label: 'Contact',            kind: 'section', icon: '#', run: function () { goTo('#contact'); } },
-      { label: 'Toggle theme',       kind: 'action',  icon: '>', run: function () { $('#themeToggle').click(); } },
-      { label: 'Download CV',        kind: 'action',  icon: '>', run: function () { window.location.href = 'assets/musa-ibn-rashid-cv.pdf'; } },
-      { label: 'Copy email address', kind: 'action',  icon: '>', run: function () { goTo('#contact'); $('#copyEmail').click(); } },
-      { label: 'Open GitHub',        kind: 'link',    icon: '^', run: function () { window.open('https://github.com/mibnrashid', '_blank', 'noopener'); } },
-      { label: 'Open LinkedIn',      kind: 'link',    icon: '^', run: function () { window.open('https://linkedin.com/in/musaibnrashid', '_blank', 'noopener'); } },
-      { label: 'Open Ice Offering',  kind: 'link',    icon: '^', run: function () { window.open('https://iceoffering.com', '_blank', 'noopener'); } }
+      { label: 'About',                   kind: 'section', icon: '#', run: function () { goTo('#about'); } },
+      { label: 'Skills',                  kind: 'section', icon: '#', run: function () { goTo('#skills'); } },
+      { label: 'Projects',                kind: 'section', icon: '#', run: function () { goTo('#projects'); } },
+      { label: 'GitHub repositories',     kind: 'section', icon: '#', run: function () { goTo('#github'); } },
+      { label: 'Experience',              kind: 'section', icon: '#', run: function () { goTo('#experience'); } },
+      { label: 'Education',               kind: 'section', icon: '#', run: function () { goTo('#education'); } },
+      { label: 'Awards',                  kind: 'section', icon: '#', run: function () { goTo('#awards'); } },
+      { label: 'Contact',                 kind: 'section', icon: '#', run: function () { goTo('#contact'); } },
+      { label: 'Show AI projects',        kind: 'filter',  icon: '~', run: function () { showProjects('ai'); } },
+      { label: 'Show web projects',       kind: 'filter',  icon: '~', run: function () { showProjects('web'); } },
+      { label: 'Show teaching projects',  kind: 'filter',  icon: '~', run: function () { showProjects('teaching'); } },
+      { label: 'Show hackathon projects', kind: 'filter',  icon: '~', run: function () { showProjects('hackathon'); } },
+      { label: 'Show all projects',       kind: 'filter',  icon: '~', run: function () { showProjects('all'); } },
+      { label: 'Toggle theme',            kind: 'action',  icon: '>', run: function () { press('#themeToggle'); } },
+      { label: 'Change my name',          kind: 'action',  icon: '>', run: function () {
+          goTo('#hero');
+          var change = $('#nameChange');
+          if (change && !change.hidden) change.click();
+          else if ($('#visitorName')) $('#visitorName').focus();
+        } },
+      { label: 'Refresh GitHub data',     kind: 'action',  icon: '>', run: function () { goTo('#github'); emit('github:refresh'); } },
+      { label: 'Download CV',             kind: 'action',  icon: '>', run: function () { window.location.href = 'assets/musa-ibn-rashid-cv.pdf'; } },
+      { label: 'Copy email address',      kind: 'action',  icon: '>', run: function () { goTo('#contact'); press('#copyEmail'); } },
+      { label: 'Reset saved preferences', kind: 'action',  icon: '>', run: function () { press('#resetPrefs'); } },
+      { label: 'Open GitHub',             kind: 'link',    icon: '^', run: function () { window.open('https://github.com/mibnrashid', '_blank', 'noopener'); } },
+      { label: 'Open LinkedIn',           kind: 'link',    icon: '^', run: function () { window.open('https://linkedin.com/in/musaibnrashid', '_blank', 'noopener'); } },
+      { label: 'Open Ice Offering',       kind: 'link',    icon: '^', run: function () { window.open('https://iceoffering.com', '_blank', 'noopener'); } }
     ];
 
     var filtered = commands.slice();
@@ -809,7 +843,7 @@
       if (!filtered.length) {
         var empty = document.createElement('li');
         empty.className = 'cmdk-empty';
-        empty.textContent = 'No matching command.';
+        empty.textContent = 'No matching command. Try "projects" or "theme".';
         list.appendChild(empty);
         return;
       }
@@ -886,7 +920,7 @@
       // so Ctrl/Cmd+K is kept only as a secondary trigger for browsers that
       // do allow it.
       var slashKey = event.key === '/' && !isTypingTarget(event.target);
-      var comboKey = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k';
+      var comboKey = (event.ctrlKey || event.metaKey) && event.key && event.key.toLowerCase() === 'k';
 
       if (palette.hidden) {
         if (slashKey || comboKey) {
