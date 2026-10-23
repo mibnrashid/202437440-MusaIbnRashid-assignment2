@@ -24,7 +24,16 @@
   -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+  <!--
+    Loaded without blocking the first paint: the stylesheet is fetched as a
+    preload and switched to a stylesheet once it arrives. The system fonts
+    named in the CSS stand in until then (display=swap).
+  -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap"
+        onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+  </noscript>
 
   <link rel="stylesheet" href="css/styles.css">
 
@@ -71,7 +80,7 @@
       </ul>
 
       <div class="nav-actions">
-        <button class="cmdk-hint" id="cmdkOpen" type="button" aria-label="Open command palette, shortcut slash">
+        <button class="cmdk-hint" id="cmdkOpen" type="button" aria-label="Jump to a section (command palette, shortcut slash)">
           <span class="key">/</span><span class="cmdk-hint-label">jump to</span>
         </button>
 
@@ -92,15 +101,15 @@
     <!-- ============================= HERO ============================= -->
     <section class="hero" id="hero">
       <div class="container hero-inner">
-        <p class="eyebrow reveal">// B.Sc. Software Engineering &mdash; KFUPM &mdash; 2024&ndash;2027</p>
+        <p class="eyebrow hero-in">// B.Sc. Software Engineering &mdash; KFUPM &mdash; 2024&ndash;2027</p>
 
-        <h1 class="hero-name reveal">Musa Ibn Rashid</h1>
+        <h1 class="hero-name hero-in">Musa Ibn Rashid</h1>
 
-        <p class="hero-tagline reveal">SWE @ KFUPM &mdash; AI, shipped products, and 4,000 users
+        <p class="hero-tagline hero-in">SWE @ KFUPM &mdash; AI, shipped products, and 4,000 users
           who didn't ask for a beta.</p>
 
         <!-- Terminal card: greeting and rotating roles are filled in by JS -->
-        <div class="terminal reveal">
+        <div class="terminal hero-in">
           <div class="terminal-bar">
             <span class="dot dot-red"></span>
             <span class="dot dot-amber"></span>
@@ -134,13 +143,13 @@
           </div>
         </div>
 
-        <div class="hero-cta reveal">
+        <div class="hero-cta hero-in">
           <a href="#projects" class="btn btn-primary">View projects</a>
           <a href="assets/musa-ibn-rashid-cv.pdf" class="btn btn-ghost" download>Download CV</a>
         </div>
 
         <!-- Numbers animate up from zero when scrolled into view -->
-        <ul class="stats reveal">
+        <ul class="stats hero-in">
           <li class="stat">
             <span class="stat-value" data-count="4000" data-suffix="+">0</span>
             <span class="stat-label">accounts on Ice Offering</span>
@@ -168,9 +177,14 @@
 
         <div class="about-grid">
           <figure class="portrait reveal">
+            <!-- srcset lets phones download the 640px version instead of the 900px one -->
             <picture>
-              <source srcset="assets/images/musa-portrait.webp" type="image/webp">
+              <source type="image/webp"
+                      srcset="assets/images/musa-portrait-640.webp 640w, assets/images/musa-portrait.webp 900w"
+                      sizes="(max-width: 860px) 320px, 340px">
               <img src="assets/images/musa-portrait.jpg"
+                   srcset="assets/images/musa-portrait-640.jpg 640w, assets/images/musa-portrait.jpg 900w"
+                   sizes="(max-width: 860px) 320px, 340px"
                    alt="Musa Ibn Rashid holding the Qimam Fellowship award for high-potential leaders"
                    width="900" height="1200" loading="lazy" decoding="async">
             </picture>
@@ -300,8 +314,12 @@
                   <span class="browser-url">iceoffering.com</span>
                 </div>
                 <picture>
-                  <source srcset="assets/images/ice-offering.webp" type="image/webp">
+                  <source type="image/webp"
+                          srcset="assets/images/ice-offering-640.webp 640w, assets/images/ice-offering-960.webp 960w, assets/images/ice-offering.webp 1600w"
+                          sizes="(max-width: 880px) calc(100vw - 4rem), 490px">
                   <img src="assets/images/ice-offering.jpg"
+                       srcset="assets/images/ice-offering-640.jpg 640w, assets/images/ice-offering-960.jpg 960w, assets/images/ice-offering.jpg 1600w"
+                       sizes="(max-width: 880px) calc(100vw - 4rem), 490px"
                        alt="Ice Course Offering weekly schedule view showing colour-coded KFUPM course sections"
                        width="1600" height="869" loading="lazy" decoding="async">
                 </picture>
@@ -332,8 +350,12 @@
             <div class="project-media">
               <div class="photo-frame">
                 <picture>
-                  <source srcset="assets/images/kaust-eeg-poster.webp" type="image/webp">
+                  <source type="image/webp"
+                          srcset="assets/images/kaust-eeg-poster-640.webp 640w, assets/images/kaust-eeg-poster-960.webp 960w, assets/images/kaust-eeg-poster.webp 1600w"
+                          sizes="(max-width: 880px) calc(100vw - 4rem), 490px">
                   <img src="assets/images/kaust-eeg-poster.jpg"
+                       srcset="assets/images/kaust-eeg-poster-640.jpg 640w, assets/images/kaust-eeg-poster-960.jpg 960w, assets/images/kaust-eeg-poster.jpg 1600w"
+                       sizes="(max-width: 880px) calc(100vw - 4rem), 490px"
                        alt="Musa presenting the EEG-to-Image Reconstruction research poster at the KAUST AI Summer Program"
                        width="1600" height="900" loading="lazy" decoding="async">
                 </picture>
