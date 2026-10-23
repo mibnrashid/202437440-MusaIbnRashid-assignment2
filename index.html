@@ -243,10 +243,41 @@
       <div class="container">
         <h2 class="section-title reveal"><span class="section-index">03</span>Projects</h2>
 
-        <div class="projects">
+        <!--
+          Filter, search and sort controls. The cards below stay in the HTML (so
+          the page still lists every project without JavaScript); script.js reads
+          their data-* attributes to filter and reorder them.
+        -->
+        <div class="toolbar reveal" id="projectToolbar" hidden>
+          <div class="chips" role="group" aria-label="Filter projects by category">
+            <button class="chip" type="button" data-filter="all" aria-pressed="true">All</button>
+            <button class="chip" type="button" data-filter="ai" aria-pressed="false">AI</button>
+            <button class="chip" type="button" data-filter="web" aria-pressed="false">Web</button>
+            <button class="chip" type="button" data-filter="hackathon" aria-pressed="false">Hackathon</button>
+            <button class="chip" type="button" data-filter="teaching" aria-pressed="false">Teaching</button>
+          </div>
 
-          <!-- Project 1 - screenshot sits inside a mock browser frame -->
-          <article class="project reveal">
+          <div class="toolbar-fields">
+            <label class="search">
+              <span class="visually-hidden">Search projects</span>
+              <input type="search" id="projectSearch" placeholder="Search projects..." autocomplete="off">
+            </label>
+            <label class="select">
+              <span class="select-label">Sort</span>
+              <select id="projectSort">
+                <option value="impact">Impact</option>
+                <option value="newest">Newest</option>
+                <option value="az">A&ndash;Z</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <p class="result-count" id="projectCount" role="status" aria-live="polite"></p>
+
+        <div class="projects" id="projectList">
+
+          <article class="project reveal" data-category="web" data-date="2025-09" data-impact="1">
             <div class="project-media">
               <div class="browser">
                 <div class="browser-bar">
@@ -265,6 +296,7 @@
             </div>
 
             <div class="project-body">
+              <p class="project-kicker">Web product</p>
               <h3 class="project-title">Ice Course Offering</h3>
               <p class="project-desc">
                 A course scheduling and real-time section tracking platform for KFUPM students.
@@ -283,8 +315,7 @@
             </div>
           </article>
 
-          <!-- Project 2 -->
-          <article class="project project-reverse reveal">
+          <article class="project reveal" data-category="ai" data-date="2025-09" data-impact="2">
             <div class="project-media">
               <div class="photo-frame">
                 <picture>
@@ -297,6 +328,7 @@
             </div>
 
             <div class="project-body">
+              <p class="project-kicker">AI research &middot; KAUST</p>
               <h3 class="project-title">EEG-to-Image Reconstruction</h3>
               <p class="project-desc">
                 A team research project that reconstructs what a person is looking at from their
@@ -314,8 +346,109 @@
             </div>
           </article>
 
-          <!-- Project 3 -->
-          <article class="project reveal">
+          <article class="project reveal" data-category="teaching ai" data-date="2026-08" data-impact="3">
+            <div class="project-media">
+              <div class="placeholder-media" role="img" aria-label="Terminal-style graphic summarising the Applied Generative AI course materials">
+                <div class="placeholder-lines">
+                  <span class="prompt">&rsaquo;</span> open slides/day-1.html
+                  <br><span class="prompt">&rsaquo;</span> 5 decks &middot; 6 notebooks &middot; 5 activities
+                  <br><span class="prompt">&rsaquo;</span> wifi --off
+                  <br><span class="placeholder-ok">&#10003; still works offline</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="project-body">
+              <p class="project-kicker">Teaching &middot; SDAIA Academy</p>
+              <h3 class="project-title">Applied Generative AI Course</h3>
+              <p class="project-desc">
+                The full course site I built and taught at SDAIA Academy in August 2026: five HTML
+                slide decks, six Colab notebooks, five scored browser activities, a pre/post test
+                and a project brief with its rubric. Plain HTML, CSS and JavaScript with nothing
+                loaded from the network, so every page works with the venue wifi off.
+              </p>
+              <ul class="tags tags-accent">
+                <li>Generative AI</li><li>Colab</li><li>HTML/CSS/JS</li><li>Instructional design</li>
+              </ul>
+              <p class="project-links">
+                <a href="https://mibnrashid.github.io/SDAIA_AppliedGenerativeAI/" target="_blank" rel="noopener noreferrer">
+                  Course site <span aria-hidden="true">&rarr;</span>
+                </a>
+                <a href="https://github.com/mibnrashid/SDAIA_AppliedGenerativeAI" target="_blank" rel="noopener noreferrer">
+                  Source <span aria-hidden="true">&rarr;</span>
+                </a>
+              </p>
+            </div>
+          </article>
+
+          <article class="project reveal" data-category="teaching ai" data-date="2026-07" data-impact="4">
+            <div class="project-media">
+              <div class="placeholder-media" role="img" aria-label="Terminal-style graphic summarising the Prompt Engineering course">
+                <div class="placeholder-lines">
+                  <span class="prompt">&rsaquo;</span> pretest --start
+                  <br><span class="prompt">&rsaquo;</span> 5 days &middot; English + Arabic decks
+                  <br><span class="prompt">&rsaquo;</span> build-lab --with-agents
+                  <br><span class="placeholder-ok">&#10003; scores stay on your device</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="project-body">
+              <p class="project-kicker">Teaching &middot; SDAIA Academy</p>
+              <h3 class="project-title">Prompt Engineering &amp; Responsible AI</h3>
+              <p class="project-desc">
+                A five-day course, from deciding what should be handed to AI at all to building
+                with context files and working with agents. It ships English and Arabic slide decks,
+                interactive browser activities with a pre-test, teaching notes and the sample
+                project used in the build labs.
+              </p>
+              <ul class="tags tags-accent">
+                <li>Prompt Engineering</li><li>AI agents</li><li>Bilingual content</li>
+              </ul>
+              <p class="project-links">
+                <a href="https://mibnrashid.github.io/SDAIA_PromptEngineeringCourse/" target="_blank" rel="noopener noreferrer">
+                  Course site <span aria-hidden="true">&rarr;</span>
+                </a>
+                <a href="https://github.com/mibnrashid/SDAIA_PromptEngineeringCourse" target="_blank" rel="noopener noreferrer">
+                  Source <span aria-hidden="true">&rarr;</span>
+                </a>
+              </p>
+            </div>
+          </article>
+
+          <article class="project reveal" data-category="ai hackathon" data-date="2026-07" data-impact="5">
+            <div class="project-media">
+              <div class="placeholder-media" role="img" aria-label="Terminal-style graphic showing a messy bank transaction being cleaned">
+                <div class="placeholder-lines">
+                  <span class="prompt">&rsaquo;</span> clean "SP *MCD_2938_RYD"
+                  <br><span class="prompt">&rsaquo;</span> exact &rarr; fuzzy &rarr; vector match
+                  <br><span class="prompt">&rsaquo;</span> merchant: McDonald&rsquo;s &middot; food
+                  <br><span class="placeholder-ok">&#10003; report written in Arabic</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="project-body">
+              <p class="project-kicker">Hackathon &middot; Amad 2026</p>
+              <h3 class="project-title">Khawarizm &mdash; AI Finance Engine</h3>
+              <p class="project-desc">
+                Turns messy Saudi bank transaction strings into clean, categorised transactions,
+                then writes a monthly report and answers budget questions in Arabic. Deterministic
+                first, LLM last: matching does the heavy lifting, and the LLM only phrases numbers
+                that are already computed, so it never invents them.
+              </p>
+              <ul class="tags tags-accent">
+                <li>Python</li><li>RapidFuzz</li><li>ChromaDB</li><li>Gemini</li>
+              </ul>
+              <p class="project-links">
+                <a href="https://github.com/mibnrashid/AmadHackathon2026" target="_blank" rel="noopener noreferrer">
+                  Source <span aria-hidden="true">&rarr;</span>
+                </a>
+              </p>
+            </div>
+          </article>
+
+          <article class="project reveal" data-category="hackathon" data-date="2026-04" data-impact="6">
             <div class="project-media">
               <!-- No photo for this one, so a CSS-drawn terminal stands in as the placeholder -->
               <div class="placeholder-media" role="img" aria-label="Placeholder graphic representing hackathon prototypes">
@@ -329,6 +462,7 @@
             </div>
 
             <div class="project-body">
+              <p class="project-kicker">Hackathons</p>
               <h3 class="project-title">Hackathon Prototypes</h3>
               <p class="project-desc">
                 A run of rapid prototypes built under deadline at Streamathon, KSAU-HS and
@@ -340,11 +474,52 @@
                 <li>Rapid prototyping</li><li>Team delivery</li><li>Demos</li>
               </ul>
               <p class="project-links">
-                <span class="project-meta">More projects coming soon</span>
+                <a href="https://sharqiah-hackathon.vercel.app" target="_blank" rel="noopener noreferrer">
+                  Sharqiyah demo <span aria-hidden="true">&rarr;</span>
+                </a>
               </p>
             </div>
           </article>
 
+          <article class="project reveal" data-category="web" data-date="2026-03" data-impact="7">
+            <div class="project-media">
+              <div class="placeholder-media" role="img" aria-label="Terminal-style graphic showing the API's two modules">
+                <div class="placeholder-lines">
+                  <span class="prompt">&rsaquo;</span> npm run start:dev
+                  <br><span class="prompt">&rsaquo;</span> POST /cms/programs
+                  <br><span class="prompt">&rsaquo;</span> GET&nbsp; /discovery/programs?q=
+                  <br><span class="placeholder-ok">&#10003; CMS and Discovery decoupled</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="project-body">
+              <p class="project-kicker">Backend</p>
+              <h3 class="project-title">Thmanyah Backend Assessment</h3>
+              <p class="project-desc">
+                A content backend in two parts: an internal CMS for creating, editing and deleting
+                programs, and a public Discovery API for listing and searching them. Built as one
+                NestJS app whose CMS and Discovery modules share a domain module but never depend
+                on each other.
+              </p>
+              <ul class="tags tags-accent">
+                <li>NestJS</li><li>TypeScript</li><li>PostgreSQL</li><li>TypeORM</li>
+              </ul>
+              <p class="project-links">
+                <a href="https://github.com/mibnrashid/ThmanyahProject" target="_blank" rel="noopener noreferrer">
+                  Source <span aria-hidden="true">&rarr;</span>
+                </a>
+              </p>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- Shown by script.js when no project matches the filter and search -->
+        <div class="empty-state" id="projectEmpty" hidden>
+          <p class="empty-title">No projects match <span id="projectEmptyQuery"></span>.</p>
+          <p class="empty-hint">Try a different word or category, or clear the filters to see everything.</p>
+          <button class="btn btn-ghost" id="projectReset" type="button">Clear filters</button>
         </div>
       </div>
     </section>
