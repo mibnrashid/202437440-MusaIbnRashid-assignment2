@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Musa Ibn Rashid - Software Engineering student at KFUPM. Builder of Ice Course Offering, KAUST AI Summer Program winner, AI instructor at SDAIA Academy.">
+  <meta name="author" content="Musa Ibn Rashid">
+  <meta name="theme-color" content="#07080b">
+
+  <!-- Open Graph tags so shared links render a proper preview card -->
+  <meta property="og:title" content="Musa Ibn Rashid - Software Engineer">
+  <meta property="og:description" content="Software Engineering student at KFUPM. Built Ice Course Offering (4,000+ accounts), won the KAUST AI Summer Program, teaches AI at SDAIA Academy.">
+  <meta property="og:type" content="website">
+
+  <title>Musa Ibn Rashid - Software Engineer</title>
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <!--
+    Two families in one request: JetBrains Mono for the terminal voice
+    (headings, nav, labels) and Source Serif 4 for prose. Form inputs fall
+    back to the system sans, declared in CSS only.
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!--
+    Applied before first paint so a saved light theme never flashes dark, and
+    so the no-js fallback is cleared before the reveal animations can flicker.
+    Kept inline (and tiny) on purpose: an external file would load too late.
+  -->
+  <script>
+    (function () {
+      document.documentElement.classList.remove('no-js');
+      try {
+        var saved = localStorage.getItem('theme');
+        var prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+        document.documentElement.setAttribute('data-theme', saved || (prefersLight ? 'light' : 'dark'));
+      } catch (e) {
+        /* localStorage blocked (private mode) - the dark default in the markup stands */
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- Fills left-to-right as the page scrolls -->
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header" id="siteHeader">
+    <nav class="nav" aria-label="Main navigation">
+      <a href="#hero" class="brand">
+        <span class="brand-user">musa</span><span class="brand-at">@</span><span class="brand-host">portfolio</span><span class="brand-path">:~$</span>
+      </a>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#about"><span class="nav-slash">/</span>about</a></li>
+        <li><a href="#skills"><span class="nav-slash">/</span>skills</a></li>
+        <li><a href="#projects"><span class="nav-slash">/</span>projects</a></li>
+        <li><a href="#experience"><span class="nav-slash">/</span>experience</a></li>
+        <li><a href="#education"><span class="nav-slash">/</span>education</a></li>
+        <li><a href="#awards"><span class="nav-slash">/</span>awards</a></li>
+        <li><a href="#contact"><span class="nav-slash">/</span>contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button class="cmdk-hint" id="cmdkOpen" type="button" aria-label="Open command palette, shortcut slash">
+          <span class="key">/</span><span class="cmdk-hint-label">jump to</span>
+        </button>
+
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch colour theme" aria-pressed="false">
+          <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+        </button>
+
+        <button class="nav-toggle" id="navToggle" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navLinks">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+
+    <!-- ============================= HERO ============================= -->
+    <section class="hero" id="hero">
+      <div class="container hero-inner">
+        <p class="eyebrow reveal">// B.Sc. Software Engineering &mdash; KFUPM &mdash; 2024&ndash;2028</p>
+
+        <h1 class="hero-name reveal">Musa Ibn Rashid</h1>
+
+        <p class="hero-tagline reveal">SWE @ KFUPM &mdash; AI, shipped products, and 4,000 users
+          who didn't ask for a beta.</p>
+
+        <!-- Terminal card: greeting and rotating roles are filled in by JS -->
+        <div class="terminal reveal">
+          <div class="terminal-bar">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-amber"></span>
+            <span class="dot dot-green"></span>
+            <span class="terminal-title">musa &mdash; zsh &mdash; 80&times;24</span>
+          </div>
+          <div class="terminal-body">
+            <p class="term-line">
+              <span class="prompt">&rsaquo;</span>
+              <span id="greeting">Welcome.</span>
+            </p>
+            <p class="term-line">
+              <span class="prompt">&rsaquo;</span>
+              <span class="term-cmd">whoami</span>
+            </p>
+            <p class="term-line term-out">
+              <span id="roleText" class="role-text"></span><span class="cursor" aria-hidden="true"></span>
+            </p>
+          </div>
+        </div>
+
+        <div class="hero-cta reveal">
+          <a href="#projects" class="btn btn-primary">View projects</a>
+          <a href="assets/musa-ibn-rashid-cv.pdf" class="btn btn-ghost" download>Download CV</a>
+        </div>
+
+        <!-- Numbers animate up from zero when scrolled into view -->
+        <ul class="stats reveal">
+          <li class="stat">
+            <span class="stat-value" data-count="4000" data-suffix="+">0</span>
+            <span class="stat-label">accounts on Ice Offering</span>
+          </li>
+          <li class="stat">
+            <span class="stat-value" data-count="100000" data-suffix="+">0</span>
+            <span class="stat-label">page views in 15 days</span>
+          </li>
+          <li class="stat">
+            <span class="stat-value" data-prefix="#" data-count="1">0</span>
+            <span class="stat-label">of 500,000+ graduates, 2023</span>
+          </li>
+          <li class="stat">
+            <span class="stat-value" data-count="35000" data-suffix="+">0</span>
+            <span class="stat-label">students mentored online</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================= ABOUT ============================= -->
+    <section class="section" id="about">
+      <div class="container">
+        <h2 class="section-title reveal"><span class="section-index">01</span>About me</h2>
+
+        <div class="about-grid">
+          <figure class="portrait reveal">
+            <picture>
+              <source srcset="assets/images/musa-portrait.webp" type="image/webp">
+              <img src="assets/images/musa-portrait.jpg"
+                   alt="Musa Ibn Rashid holding the Qimam Fellowship award for high-potential leaders"
+                   width="900" height="1200" loading="lazy" decoding="async">
+            </picture>
+            <figcaption>Qimam Fellowship, 2025 &mdash; 1 of 50 selected from 18,000+ applicants.</figcaption>
+          </figure>
+
+          <div class="about-text reveal">
+            <p>
+              I am a Software Engineering student at KFUPM, which I started after skipping the
+              Preparatory Year through placement tests. Since then my work has fallen into two
+              piles: products students actually use, and AI systems.
+            </p>
+            <p>
+              <strong>Ice Course Offering</strong> is the product &mdash; a course-scheduling and
+              real-time section-tracking platform for KFUPM students, built in Next.js, TypeScript
+              and Firebase. In the 15 days after its V2 launch it reached 4,000+ accounts and
+              100,000+ page views. The AI work is mostly research: at the
+              <strong>KAUST AI Summer Program</strong> my team reframed EEG-to-image reconstruction
+              from a signal-denoising problem into a semantic-guidance one, using the EEG signal to
+              steer a text-guided diffusion model rather than decode pixels directly. It beat the
+              ATM baseline on perceptual similarity and took first place.
+            </p>
+            <p>
+              These days I teach Computer Vision, Prompt Engineering and Applied Generative AI at
+              <strong>SDAIA Academy</strong>, and I am a QA engineering intern at
+              <strong>Sawt</strong> working on Arabic voice AI delivered to government and
+              enterprise clients &mdash; requirements analysis and test design, not just bug
+              reports. Before that I was Vice President of the KFUPM Computer Club, where I ran
+              35+ events on an 80,000 SAR budget.
+            </p>
+
+            <dl class="facts">
+              <div class="fact"><dt>Location</dt><dd>Dhahran, Saudi Arabia</dd></div>
+              <div class="fact"><dt>GPA</dt><dd>3.5+ / 4.0</dd></div>
+              <div class="fact"><dt>Languages</dt><dd>Arabic (native), English (native)</dd></div>
+              <div class="fact"><dt>Focus</dt><dd>AI systems, web products, QA</dd></div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================= SKILLS ============================= -->
+    <section class="section" id="skills">
+      <div class="container">
+        <h2 class="section-title reveal"><span class="section-index">02</span>Skills</h2>
+
+        <div class="skills-grid">
+          <article class="skill-card reveal">
+            <h3>Programming</h3>
+            <ul class="tags">
+              <li>Python</li><li>TypeScript</li><li>Java</li><li>C#</li><li>C</li><li>Lua</li>
+            </ul>
+          </article>
+
+          <article class="skill-card reveal">
+            <h3>AI &amp; Machine Learning</h3>
+            <ul class="tags">
+              <li>Machine Learning</li><li>Computer Vision</li><li>NLP</li>
+              <li>Reinforcement Learning</li><li>Prompt Engineering</li>
+            </ul>
+          </article>
+
+          <article class="skill-card reveal">
+            <h3>Frameworks</h3>
+            <ul class="tags">
+              <li>PyTorch</li><li>Next.js</li><li>Firebase</li><li>Tailwind CSS</li>
+            </ul>
+          </article>
+
+          <article class="skill-card reveal">
+            <h3>Tools</h3>
+            <ul class="tags">
+              <li>Git</li><li>GitHub</li><li>Vercel</li><li>Cursor</li><li>Google Colab</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================= PROJECTS ============================= -->
+    <section class="section" id="projects">
+      <div class="container">
+        <h2 class="section-title reveal"><span class="section-index">03</span>Projects</h2>
+
+        <div class="projects">
+
+          <!-- Project 1 - screenshot sits inside a mock browser frame -->
+          <article class="project reveal">
+            <div class="project-media">
+              <div class="browser">
+                <div class="browser-bar">
+                  <span class="dot dot-red"></span>
+                  <span class="dot dot-amber"></span>
+                  <span class="dot dot-green"></span>
+                  <span class="browser-url">iceoffering.com</span>
+                </div>
+                <picture>
+                  <source srcset="assets/images/ice-offering.webp" type="image/webp">
+                  <img src="assets/images/ice-offering.jpg"
+                       alt="Ice Course Offering weekly schedule view showing colour-coded KFUPM course sections"
+                       width="1600" height="869" loading="lazy" decoding="async">
+                </picture>
+              </div>
+            </div>
+
+            <div class="project-body">
+              <h3 class="project-title">Ice Course Offering</h3>
+              <p class="project-desc">
+                A course scheduling and real-time section tracking platform for KFUPM students.
+                It lets students build a timetable and react fast when a closed section opens up.
+                Within 15 days of the V2 launch it reached 4,000+ accounts, 21,000+ visitors and
+                100,000+ page views.
+              </p>
+              <ul class="tags tags-accent">
+                <li>Next.js</li><li>TypeScript</li><li>Firebase</li><li>Tailwind CSS</li><li>Vercel</li>
+              </ul>
+              <p class="project-links">
+                <a href="https://iceoffering.com" target="_blank" rel="noopener noreferrer">
+                  Visit site <span aria-hidden="true">&rarr;</span>
+                </a>
+              </p>
+            </div>
+          </article>
+
+          <!-- Project 2 -->
+          <article class="project project-reverse reveal">
+            <div class="project-media">
+              <div class="photo-frame">
+                <picture>
+                  <source srcset="assets/images/kaust-eeg-poster.webp" type="image/webp">
+                  <img src="assets/images/kaust-eeg-poster.jpg"
+                       alt="Musa presenting the EEG-to-Image Reconstruction research poster at the KAUST AI Summer Program"
+                       width="1600" height="900" loading="lazy" decoding="async">
+                </picture>
+              </div>
+            </div>
+
+            <div class="project-body">
+              <h3 class="project-title">EEG-to-Image Reconstruction</h3>
+              <p class="project-desc">
+                A team research project that reconstructs what a person is looking at from their
+                EEG signals. We reframed the task from direct signal decoding into semantic
+                guidance for a text-guided diffusion model, which beat the ATM baseline on
+                perceptual similarity (LPIPS 0.729 versus 0.774, lower is better) and took
+                1st place in the KAUST AI Summer Program.
+              </p>
+              <ul class="tags tags-accent">
+                <li>PyTorch</li><li>Stable Diffusion</li><li>CLIP</li><li>Python</li>
+              </ul>
+              <p class="project-links">
+                <span class="project-meta">KAUST Academy &mdash; Jun&ndash;Sep 2025</span>
+              </p>
+            </div>
+          </article>
+
+          <!-- Project 3 -->
+          <article class="project reveal">
+            <div class="project-media">
+              <!-- No photo for this one, so a CSS-drawn terminal stands in as the placeholder -->
+              <div class="placeholder-media" role="img" aria-label="Placeholder graphic representing hackathon prototypes">
+                <div class="placeholder-lines">
+                  <span class="prompt">&rsaquo;</span> git init prototype
+                  <br><span class="prompt">&rsaquo;</span> npm run build
+                  <br><span class="prompt">&rsaquo;</span> ship --before-deadline
+                  <br><span class="placeholder-ok">&#10003; 3 hackathons</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="project-body">
+              <h3 class="project-title">Hackathon Prototypes</h3>
+              <p class="project-desc">
+                A run of rapid prototypes built under deadline at Streamathon, KSAU-HS and
+                Sharqiyah hackathons &mdash; each one scoped, built and demoed within the event
+                window. Earlier in the same vein, a game built for the KFUPM GameJam took
+                1st place nationally in 2024.
+              </p>
+              <ul class="tags tags-accent">
+                <li>Rapid prototyping</li><li>Team delivery</li><li>Demos</li>
+              </ul>
+              <p class="project-links">
+                <span class="project-meta">More projects coming soon</span>
+              </p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================= EXPERIENCE ============================= -->
+    <section class="section" id="experience">
+      <div class="container">
+        <h2 class="section-title reveal"><span class="section-index">04</span>Experience</h2>
+
+        <ol class="timeline">
+          <li class="timeline-item reveal">
+            <span class="timeline-date">Jun 2026 &mdash; Present</span>
+            <h3 class="timeline-role">Quality Assurance Engineer Intern</h3>
+            <p class="timeline-org">Sawt</p>
+            <p class="timeline-desc">
+              QA across the full cycle &mdash; requirements analysis, prompt reviews, test scenario
+              design, execution and bug reporting on Arabic voice AI systems delivered to major
+              government and enterprise clients.
+            </p>
+          </li>
+
+          <li class="timeline-item reveal">
+            <span class="timeline-date">Jul 2026 &mdash; Present</span>
+            <h3 class="timeline-role">AI Instructor</h3>
+            <p class="timeline-org">SDAIA Academy</p>
+            <p class="timeline-desc">
+              Instructed courses in Computer Vision, Prompt Engineering and Applied Generative AI.
+            </p>
+          </li>
+
+          <li class="timeline-item reveal">
+            <span class="timeline-date">Aug 2025 &mdash; Feb 2026</span>
+            <h3 class="timeline-role">Vice President</h3>
+            <p class="timeline-org">KFUPM Computer Club</p>
+            <p class="timeline-desc">
+              Led execution of 35+ events across AI, software engineering, fintech and cybersecurity,
+              managing cross-functional teams in PR, marketing, technology, logistics and finance.
+              Reached 2,500+ attendees and 600,000+ impressions, secured 10+ collaborations, and
+              managed an 80,000 SAR budget with a further 180,000 SAR planned for the second term.
+            </p>
+          </li>
+
+          <li class="timeline-item reveal">
+            <span class="timeline-date">Sep 2024 &mdash; Present</span>
+            <h3 class="timeline-role">Conference Manager</h3>
+            <p class="timeline-org">KFUPM KIKX</p>
+            <p class="timeline-desc">
+              Led conference-day operations for 10+ conferences of up to 2,500+ attendees,
+              coordinating 75+ volunteers per event.
+            </p>
+          </li>
+
+          <li class="timeline-item reveal">
+            <span class="timeline-date">Jun 2025</span>
+            <h3 class="timeline-role">Fellow</h3>
+            <p class="timeline-org">Qimam Fellowship Program</p>
+            <p class="timeline-desc">
+              Selected as 1 of 50 students from 18,000+ applicants (top 0.3%) for the Kingdom's most
+              competitive leadership program &mdash; executive training, one-on-one mentorship with
+              senior leaders, company immersions, and a national peer network.
+            </p>
+          </li>
+
+          <li class="timeline-item reveal">
+            <span class="timeline-date">2021 &mdash; Present</span>
+            <h3 class="timeline-role">Academic Mentor &amp; Educational Content Creator</h3>
+            <p class="timeline-org">Independent &mdash; X and Telegram</p>
+            <p class="timeline-desc">
+              Reached 35,000+ students across Saudi Arabia with guidance on Qudrat, Tahsili, KFUPM
+              freshman courses, KAUST, Qimam and tech careers.
+            </p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============================= EDUCATION ============================= -->
+    <section class="section" id="education">
+      <div class="container">
+        <h2 class="section-title reveal"><span class="section-index">05</span>Education</h2>
+
+        <div class="edu-grid">
+          <article class="edu-card reveal">
+            <span class="edu-date">2024 &mdash; 2028</span>
+            <h3>B.Sc. Software Engineering</h3>
+            <p class="edu-org">King Fahd University of Petroleum and Minerals (KFUPM)</p>
+            <ul class="bullets">
+              <li>GPA 3.5+ / 4.0</li>
+              <li>Skipped the Preparatory Year through placement tests, ranking in the top 3% of incoming students.</li>
+              <li>Selected as a KFUPM Student Affairs 2025 mentor, supporting 200 incoming Skip-Prep and Orientation students.</li>
+            </ul>
+          </article>
+
+          <article class="edu-card reveal">
+            <span class="edu-date">Jun 2025 &mdash; Sep 2025</span>
+            <h3>AI Summer Internship</h3>
+            <p class="edu-org">KAUST</p>
+            <ul class="bullets">
+              <li>Selected as 1 of 100 participants from 15,000+ applicants across multiple competitive stages.</li>
+              <li>Studied and applied computer vision, reinforcement learning and natural language processing.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================= AWARDS ============================= -->
+    <section class="section" id="awards">
+      <div class="container">
+        <h2 class="section-title reveal"><span class="section-index">06</span>Awards &amp; Certifications</h2>
+
+        <ul class="awards">
+          <li class="award reveal">
+            <span class="award-mark">01</span>
+            <div>
+              <h3>Ranked #1 nationally &mdash; Saudi National High School, Class of 2023</h3>
+              <p>First out of 500,000+ graduates nationwide with a perfect 100%.</p>
+            </div>
+          </li>
+          <li class="award reveal">
+            <span class="award-mark">02</span>
+            <div>
+              <h3>1st Place &mdash; KAUST AI Summer Program</h3>
+              <p>For the EEG-to-image reconstruction project using semantic guidance.</p>
+            </div>
+          </li>
+          <li class="award reveal">
+            <span class="award-mark">03</span>
+            <div>
+              <h3>1st Place Nationally &mdash; KFUPM GameJam Hackathon, 2024</h3>
+              <p>National winner among competing university teams.</p>
+            </div>
+          </li>
+          <li class="award reveal">
+            <span class="award-mark">04</span>
+            <div>
+              <h3>HarvardX Professional Certificate &mdash; Computer Science for Game Development</h3>
+              <p>Completed at age 15.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================= CONTACT ============================= -->
+    <section class="section" id="contact">
+      <div class="container">
+        <h2 class="section-title reveal"><span class="section-index">07</span>Contact</h2>
+
+        <div class="contact-grid">
+          <div class="contact-intro reveal">
+            <p>
+              Open to internships, collaboration on AI or web projects, and conversations with
+              students trying to break into tech. The fastest route is email.
+            </p>
+
+            <ul class="contact-links">
+              <li>
+                <a href="mailto:m.ibnrashid@gmail.com" id="emailLink">m.ibnrashid@gmail.com</a>
+                <button class="copy-btn" id="copyEmail" type="button" aria-label="Copy email address">copy</button>
+              </li>
+              <li><a href="https://github.com/mibnrashid" target="_blank" rel="noopener noreferrer">github.com/mibnrashid</a></li>
+              <li><a href="https://linkedin.com/in/musaibnrashid" target="_blank" rel="noopener noreferrer">linkedin.com/in/musaibnrashid</a></li>
+            </ul>
+          </div>
+
+          <!-- No backend: submission is validated and acknowledged entirely client-side -->
+          <form class="contact-form reveal" id="contactForm" novalidate>
+            <div class="field">
+              <label for="name">Name</label>
+              <input type="text" id="name" name="name" autocomplete="name" required
+                     aria-describedby="nameError">
+              <p class="error" id="nameError" role="alert"></p>
+            </div>
+
+            <div class="field">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" autocomplete="email" required
+                     aria-describedby="emailError">
+              <p class="error" id="emailError" role="alert"></p>
+            </div>
+
+            <div class="field">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" rows="5" required
+                        aria-describedby="messageError"></textarea>
+              <p class="error" id="messageError" role="alert"></p>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Send message</button>
+
+            <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+            <p class="form-note">
+              This form is a front-end demo for the assignment &mdash; there is no backend, so
+              nothing is transmitted. Use the email link for a real message.
+            </p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-line">
+        <span class="prompt">&rsaquo;</span> built by Musa Ibn Rashid &mdash; HTML, CSS and JavaScript, no frameworks.
+      </p>
+      <p class="footer-meta">&copy; <span id="year">2026</span> Musa Ibn Rashid</p>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop" type="button" aria-label="Back to top">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+
+  <!-- Command palette: Ctrl/Cmd + K -->
+  <div class="cmdk" id="cmdk" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
+    <div class="cmdk-panel">
+      <input type="text" class="cmdk-input" id="cmdkInput" placeholder="Jump to a section or run a command..."
+             aria-label="Search commands" autocomplete="off">
+      <ul class="cmdk-list" id="cmdkList" role="listbox" aria-label="Commands"></ul>
+      <div class="cmdk-footer">
+        <span><span class="key">&uarr;</span><span class="key">&darr;</span> navigate</span>
+        <span><span class="key">Enter</span> select</span>
+        <span><span class="key">Esc</span> close</span>
+        <span class="cmdk-footer-tip"><span class="key">/</span> reopen</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/script.js" defer></script>
+</body>
+</html>

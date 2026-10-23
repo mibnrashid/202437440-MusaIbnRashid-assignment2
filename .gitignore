@@ -1,0 +1,17 @@
+# Original, unoptimized source images (web-ready versions live in assets/images/)
+.originals/
+
+# OS / editor noise
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Dependency & build output (not used in this assignment, kept for future work)
+node_modules/
+dist/
+build/
+*.log
