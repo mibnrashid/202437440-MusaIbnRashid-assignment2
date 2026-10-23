@@ -36,6 +36,16 @@
      static page instead of typing, counting and reveal effects. */
   var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* Every localStorage key the site uses, in one place, so "reset saved
+     preferences" can clear exactly what was written and nothing else. */
+  var KEYS = {
+    theme:       'theme',
+    name:        'visitorName',
+    projectView: 'projectView',
+    draft:       'contactDraft',
+    repos:       'githubRepos'
+  };
+
   /* localStorage throws in some privacy modes, so every access is wrapped. */
   var storage = {
     get: function (key) {
@@ -43,8 +53,80 @@
     },
     set: function (key, value) {
       try { localStorage.setItem(key, value); } catch (e) { /* ignore */ }
+    },
+    remove: function (key) {
+      try { localStorage.removeItem(key); } catch (e) { /* ignore */ }
+    },
+    // JSON helpers - a corrupted value is treated as "nothing saved"
+    getJSON: function (key) {
+      try { return JSON.parse(storage.get(key)); } catch (e) { return null; }
+    },
+    setJSON: function (key, value) {
+      storage.set(key, JSON.stringify(value));
     }
   };
+
+  /* Modules announce a preferences reset with this event so each one can
+     return to its default state without knowing about the others. */
+  var RESET_EVENT = 'prefs:reset';
+
+  function emit(name) {
+    var event;
+    try {
+      event = new CustomEvent(name);
+    } catch (e) {
+      // Older browsers without the CustomEvent constructor
+      event = document.createEvent('CustomEvent');
+      event.initCustomEvent(name, false, false, null);
+    }
+    document.dispatchEvent(event);
+  }
+
+  /* ======================================================================
+     15. TOAST NOTIFICATIONS
+     Defined first because most other modules report back through it.
+     type: 'success' | 'error' | undefined (neutral)
+     ====================================================================== */
+  var TOAST_MS = 4500;
+  var MAX_TOASTS = 3;
+
+  function toast(message, type) {
+    var region = $('#toasts');
+    if (!region) return;
+
+    var item = document.createElement('div');
+    item.className = 'toast' + (type ? ' is-' + type : '');
+
+    var text = document.createElement('span');
+    text.textContent = message;
+
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'toast-close';
+    close.setAttribute('aria-label', 'Dismiss notification');
+    close.innerHTML = '&times;';
+
+    item.appendChild(text);
+    item.appendChild(close);
+    region.appendChild(item);
+
+    // Never let notifications pile up over the page
+    while (region.children.length > MAX_TOASTS) region.removeChild(region.firstChild);
+
+    var timer = window.setTimeout(dismiss, TOAST_MS);
+
+    function dismiss() {
+      window.clearTimeout(timer);
+      if (!item.parentNode) return;
+      item.classList.add('is-leaving');
+      // Matches the 0.25s exit animation in the stylesheet
+      window.setTimeout(function () {
+        if (item.parentNode) item.parentNode.removeChild(item);
+      }, 260);
+    }
+
+    close.addEventListener('click', dismiss);
+  }
 
   /* ======================================================================
      1. THEME TOGGLE
@@ -57,6 +139,7 @@
 
     var root = document.documentElement;
     var meta = $('meta[name="theme-color"]');
+    var media = window.matchMedia('(prefers-color-scheme: light)');
 
     function apply(theme) {
       root.setAttribute('data-theme', theme);
@@ -70,16 +153,20 @@
     toggle.addEventListener('click', function () {
       var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
       apply(next);
-      storage.set('theme', next);
+      storage.set(KEYS.theme, next);
     });
 
     // Follow the OS only while the visitor has not chosen a theme themselves
-    var media = window.matchMedia('(prefers-color-scheme: light)');
     var onSystemChange = function (event) {
-      if (!storage.get('theme')) apply(event.matches ? 'light' : 'dark');
+      if (!storage.get(KEYS.theme)) apply(event.matches ? 'light' : 'dark');
     };
     if (media.addEventListener) media.addEventListener('change', onSystemChange);
     else if (media.addListener) media.addListener(onSystemChange);   // Safari < 14
+
+    // After a reset there is no saved choice, so fall back to the OS again
+    document.addEventListener(RESET_EVENT, function () {
+      apply(media.matches ? 'light' : 'dark');
+    });
   }
 
   /* ======================================================================
@@ -665,6 +752,34 @@
   }
 
   /* ======================================================================
+     19. ONLINE / OFFLINE NOTICES
+     ====================================================================== */
+  function initConnectionStatus() {
+    window.addEventListener('offline', function () {
+      toast('You are offline. The page still works; live GitHub data will return when you reconnect.', 'error');
+    });
+    window.addEventListener('online', function () {
+      toast('Back online.', 'success');
+    });
+  }
+
+  /* ======================================================================
+     20. RESET SAVED PREFERENCES
+     Clears every key in KEYS, then tells the other modules to return to
+     their defaults through the reset event.
+     ====================================================================== */
+  function initResetPreferences() {
+    var button = $('#resetPrefs');
+    if (!button) return;
+
+    button.addEventListener('click', function () {
+      Object.keys(KEYS).forEach(function (name) { storage.remove(KEYS[name]); });
+      emit(RESET_EVENT);
+      toast('Saved preferences cleared: theme, name, project filters, message draft and cached GitHub data.', 'success');
+    });
+  }
+
+  /* ======================================================================
      FOOTER YEAR
      ====================================================================== */
   function initYear() {
@@ -692,6 +807,8 @@
     initCopyEmail();
     initBackToTop();
     initCommandPalette();
+    initConnectionStatus();
+    initResetPreferences();
     initYear();
   }
 

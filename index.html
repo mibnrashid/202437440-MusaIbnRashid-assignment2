@@ -553,13 +553,21 @@
       <p class="footer-line">
         <span class="prompt">&rsaquo;</span> built by Musa Ibn Rashid &mdash; HTML, CSS and JavaScript, no frameworks.
       </p>
-      <p class="footer-meta">&copy; <span id="year">2026</span> Musa Ibn Rashid</p>
+      <p class="footer-meta">
+        <!-- Clears everything this site saved in localStorage -->
+        <button class="term-link" id="resetPrefs" type="button">reset saved preferences</button>
+        <span aria-hidden="true">&middot;</span>
+        &copy; <span id="year">2026</span> Musa Ibn Rashid
+      </p>
     </div>
   </footer>
 
   <button class="back-to-top" id="backToTop" type="button" aria-label="Back to top">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
   </button>
+
+  <!-- Toast notifications - announced politely to screen readers -->
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 
   <!-- Command palette: Ctrl/Cmd + K -->
   <div class="cmdk" id="cmdk" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
