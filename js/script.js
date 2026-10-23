@@ -919,6 +919,487 @@
   }
 
   /* ======================================================================
+     17. LIVE GITHUB REPOSITORIES
+     Fetches every public repository from the GitHub REST API and renders
+     them as cards with search, a language filter, sorting and paging.
+
+     - Loading: skeleton cards and a "Loading..." status while waiting.
+     - Timeout: the request is abandoned after 8 seconds.
+     - Errors : a specific message (offline, rate-limited, timeout...) and
+                a Retry button. If an older cached copy exists it is shown
+                instead, with a note saying so.
+     - Cache  : results are kept in localStorage for an hour. The API
+                allows 60 unauthenticated requests per hour per visitor,
+                and the cache also makes repeat visits instant.
+     - Lazy   : nothing is requested until the section is close to view.
+     ====================================================================== */
+  function initGitHubRepos() {
+    var section = $('#github');
+    var list = $('#ghList');
+    if (!section || !list) return;
+
+    var USER = 'mibnrashid';
+    var API_URL = 'https://api.github.com/users/' + USER + '/repos?per_page=100&sort=pushed';
+    var PROFILE_URL = 'https://github.com/' + USER + '?tab=repositories';
+    var CACHE_MS = 60 * 60 * 1000;
+    var TIMEOUT_MS = 8000;
+    var PAGE_SIZE = 6;
+
+    // GitHub's own language colours, for the dot on each card
+    var LANGUAGE_COLORS = {
+      'TypeScript': '#3178c6', 'JavaScript': '#f1e05a', 'Python': '#3572a5',
+      'HTML': '#e34c26', 'CSS': '#663399', 'Java': '#b07219', 'C#': '#178600',
+      'Jupyter Notebook': '#da5b0b', 'R': '#198ce7', 'Lua': '#000080', 'C': '#555555'
+    };
+
+    var toolbar = $('#ghToolbar');
+    var summary = $('#ghSummary');
+    var status = $('#ghStatus');
+    var message = $('#ghMessage');
+    var messageTitle = $('#ghMessageTitle');
+    var messageHint = $('#ghMessageHint');
+    var messageAction = $('#ghMessageAction');
+    var moreButton = $('#ghMore');
+    var meta = $('#ghMeta');
+    var search = $('#ghSearch');
+    var language = $('#ghLanguage');
+    var sort = $('#ghSort');
+    var forks = $('#ghForks');
+
+    var repos = [];
+    var visibleCount = PAGE_SIZE;
+    var isLoading = false;
+    var hasFailed = false;
+    var onMessageAction = null;
+
+    /* --- Small helpers --- */
+
+    function el(tag, className, text) {
+      var node = document.createElement(tag);
+      if (className) node.className = className;
+      // textContent, never innerHTML: repository names and descriptions come
+      // from an outside source, so they are never interpreted as markup
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+
+    function plural(count, word, wordPlural) {
+      return count + ' ' + (count === 1 ? word : (wordPlural || word + 's'));
+    }
+
+    /* "3 days ago" - accepts an ISO string or a timestamp, and uses
+       Intl.RelativeTimeFormat where available */
+    function timeAgo(date) {
+      var then = new Date(date).getTime();
+      var seconds = Math.round((then - Date.now()) / 1000);
+      var units = [
+        ['year', 31536000], ['month', 2592000], ['week', 604800],
+        ['day', 86400], ['hour', 3600], ['minute', 60]
+      ];
+
+      for (var i = 0; i < units.length; i++) {
+        var value = Math.round(seconds / units[i][1]);
+        if (Math.abs(value) >= 1) {
+          if (window.Intl && Intl.RelativeTimeFormat) {
+            return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(value, units[i][0]);
+          }
+          return plural(Math.abs(value), units[i][0]) + ' ago';
+        }
+      }
+      return 'just now';
+    }
+
+    /* Keeps only the fields the page uses, so the cache stays small */
+    function slim(repo) {
+      return {
+        name: repo.name,
+        description: repo.description,
+        url: repo.html_url,
+        language: repo.language,
+        stars: repo.stargazers_count || 0,
+        fork: Boolean(repo.fork),
+        pushed: repo.pushed_at || repo.updated_at
+      };
+    }
+
+    /* --- Network --- */
+
+    function makeError(type, extra) {
+      var error = new Error(type);
+      error.type = type;
+      if (extra) Object.keys(extra).forEach(function (key) { error[key] = extra[key]; });
+      return error;
+    }
+
+    /* fetch() has no timeout of its own. AbortController cancels the
+       request where supported; the timer rejects either way. */
+    function fetchWithTimeout(url, ms) {
+      if (!window.fetch || !window.Promise) return Promise.reject(makeError('unsupported'));
+
+      var controller = window.AbortController ? new AbortController() : null;
+
+      return new Promise(function (resolve, reject) {
+        var timer = window.setTimeout(function () {
+          if (controller) controller.abort();
+          reject(makeError('timeout'));
+        }, ms);
+
+        fetch(url, controller ? { signal: controller.signal } : {}).then(function (response) {
+          window.clearTimeout(timer);
+          resolve(response);
+        }, function () {
+          window.clearTimeout(timer);
+          reject(makeError(navigator.onLine === false ? 'offline' : 'network'));
+        });
+      });
+    }
+
+    function request() {
+      return fetchWithTimeout(API_URL, TIMEOUT_MS).then(function (response) {
+        if (!response.ok) {
+          var remaining = response.headers.get('X-RateLimit-Remaining');
+          var isRateLimited = (response.status === 403 || response.status === 429) && remaining === '0';
+          throw makeError(isRateLimited ? 'rate-limit' : 'http', {
+            status: response.status,
+            reset: Number(response.headers.get('X-RateLimit-Reset')) * 1000
+          });
+        }
+        return response.json();
+      }).then(function (data) {
+        if (!Array.isArray(data)) throw makeError('format');
+        return data.map(slim);
+      });
+    }
+
+    /* Every failure tells the visitor what happened and what to do next */
+    function describeError(error) {
+      switch (error.type) {
+        case 'offline':
+          return { title: 'You appear to be offline.',
+                   hint: 'The repositories load live from GitHub. Reconnect and they will load automatically, or press Retry.' };
+        case 'timeout':
+          return { title: 'GitHub is taking too long to answer.',
+                   hint: 'It may be busy right now. Press Retry, or browse the repositories on GitHub directly.' };
+        case 'rate-limit':
+          var at = error.reset ? new Date(error.reset).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
+          return { title: 'GitHub\'s hourly request limit has been reached.',
+                   hint: 'GitHub allows 60 requests an hour per visitor' + (at ? ', and the limit resets at ' + at : '') +
+                         '. Until then you can browse the repositories on GitHub directly.' };
+        case 'unsupported':
+          return { title: 'This browser cannot load live data.',
+                   hint: 'Please use a current version of Chrome, Edge, Firefox or Safari, or browse the repositories on GitHub directly.' };
+        case 'http':
+          return { title: 'GitHub returned an error (' + error.status + ').',
+                   hint: 'This is usually temporary. Press Retry in a moment.' };
+        default:
+          return { title: 'Could not load repositories from GitHub.',
+                   hint: 'Something went wrong on the way. Check your connection and press Retry.' };
+      }
+    }
+
+    /* --- Cache --- */
+
+    function readCache() {
+      var cached = storage.getJSON(KEYS.repos);
+      return cached && Array.isArray(cached.repos) && typeof cached.time === 'number' ? cached : null;
+    }
+
+    /* --- States --- */
+
+    function showMessage(title, hint, actionLabel, action, isError) {
+      messageTitle.textContent = title;
+      messageHint.textContent = hint;
+      messageAction.textContent = actionLabel;
+      messageAction.hidden = !actionLabel;
+      onMessageAction = action;
+      message.classList.toggle('is-error', Boolean(isError));
+      message.hidden = false;
+    }
+
+    function hideMessage() {
+      message.hidden = true;
+    }
+
+    function showLoading() {
+      isLoading = true;
+      hideMessage();
+      moreButton.hidden = true;
+      list.setAttribute('aria-busy', 'true');
+      status.textContent = 'Loading repositories from GitHub…';
+
+      list.innerHTML = '';
+      for (var i = 0; i < PAGE_SIZE; i++) {
+        var card = el('div', 'repo-card is-skeleton');
+        card.setAttribute('aria-hidden', 'true');
+        card.appendChild(el('span', 'skeleton-line is-title'));
+        card.appendChild(el('span', 'skeleton-line'));
+        card.appendChild(el('span', 'skeleton-line'));
+        card.appendChild(el('span', 'skeleton-line is-short'));
+        list.appendChild(card);
+      }
+    }
+
+    function showError(error) {
+      var text = describeError(error);
+      list.innerHTML = '';
+      list.setAttribute('aria-busy', 'false');
+      toolbar.hidden = true;
+      summary.hidden = true;
+      moreButton.hidden = true;
+      status.textContent = 'Repositories could not be loaded.';
+      showMessage(text.title, text.hint, 'Retry', function () { load(true); }, true);
+      renderMeta(null, false);
+    }
+
+    /* "Updated 5 minutes ago · Refresh · View on GitHub" */
+    function renderMeta(time, isStale) {
+      meta.innerHTML = '';
+
+      if (time) {
+        meta.appendChild(document.createTextNode(
+          (isStale ? 'Showing a saved copy from ' : 'Updated ') + timeAgo(time) + ' · '
+        ));
+        var refresh = el('button', 'term-link', 'refresh');
+        refresh.type = 'button';
+        refresh.addEventListener('click', function () { load(true); });
+        meta.appendChild(refresh);
+        meta.appendChild(document.createTextNode(' · '));
+      }
+
+      var link = el('a', '', 'view on GitHub →');
+      link.href = PROFILE_URL;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      meta.appendChild(link);
+    }
+
+    function renderSummary() {
+      var stars = 0;
+      var languageCounts = {};
+
+      repos.forEach(function (repo) {
+        stars += repo.stars;
+        if (repo.language) languageCounts[repo.language] = (languageCounts[repo.language] || 0) + 1;
+      });
+
+      var languages = Object.keys(languageCounts).sort(function (a, b) {
+        return languageCounts[b] - languageCounts[a] || a.localeCompare(b);
+      });
+      var original = repos.filter(function (repo) { return !repo.fork; }).length;
+
+      var items = [
+        [repos.length, 'public repositories'],
+        [original, 'original'],
+        [languages.length, 'languages'],
+        [stars, stars === 1 ? 'star' : 'stars']
+      ];
+      if (languages[0]) items.push([languages[0], 'most used']);
+
+      summary.innerHTML = '';
+      items.forEach(function (item) {
+        var li = el('li');
+        li.appendChild(el('strong', '', String(item[0])));
+        li.appendChild(document.createTextNode(item[1]));
+        summary.appendChild(li);
+      });
+      summary.hidden = false;
+
+      // Rebuild the language options, keeping the current choice if it still exists
+      var current = language.value;
+      language.innerHTML = '';
+      language.appendChild(new Option('All (' + repos.length + ')', 'all'));
+      languages.forEach(function (name) {
+        language.appendChild(new Option(name + ' (' + languageCounts[name] + ')', name));
+      });
+      language.appendChild(new Option('Not specified', 'none'));
+      language.value = current === 'all' || languageCounts[current] || current === 'none' ? current : 'all';
+    }
+
+    function currentMatches() {
+      var query = search.value.trim().toLowerCase();
+      var lang = language.value;
+
+      var matches = repos.filter(function (repo) {
+        if (!forks.checked && repo.fork) return false;
+        if (lang === 'none' && repo.language) return false;
+        if (lang !== 'all' && lang !== 'none' && repo.language !== lang) return false;
+        if (!query) return true;
+        return (repo.name + ' ' + (repo.description || '')).toLowerCase().indexOf(query) > -1;
+      });
+
+      var sorters = {
+        updated: function (a, b) { return (b.pushed || '').localeCompare(a.pushed || ''); },
+        stars:   function (a, b) { return b.stars - a.stars || a.name.localeCompare(b.name); },
+        name:    function (a, b) { return a.name.toLowerCase().localeCompare(b.name.toLowerCase()); }
+      };
+
+      return matches.sort(sorters[sort.value] || sorters.updated);
+    }
+
+    function buildCard(repo, index) {
+      var card = el('a', 'repo-card');
+      card.href = repo.url;
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
+      if (!prefersReducedMotion) card.style.animationDelay = (index % PAGE_SIZE) * 40 + 'ms';
+
+      var head = el('div', 'repo-head');
+      head.appendChild(el('span', 'repo-name', repo.name));
+      if (repo.fork) head.appendChild(el('span', 'repo-badge', 'fork'));
+      card.appendChild(head);
+
+      var description = el('p', 'repo-desc', repo.description || 'No description provided.');
+      if (!repo.description) description.classList.add('is-empty');
+      card.appendChild(description);
+
+      var details = el('div', 'repo-meta');
+      if (repo.language) {
+        var lang = el('span', 'repo-lang', repo.language);
+        lang.style.setProperty('--lang-color', LANGUAGE_COLORS[repo.language] || 'var(--muted)');
+        details.appendChild(lang);
+      }
+      details.appendChild(el('span', '', '★ ' + repo.stars));
+      if (repo.pushed) details.appendChild(el('span', '', 'updated ' + timeAgo(repo.pushed)));
+      card.appendChild(details);
+
+      return card;
+    }
+
+    function render() {
+      var matches = currentMatches();
+      var shown = matches.slice(0, visibleCount);
+
+      list.innerHTML = '';
+      shown.forEach(function (repo, index) { list.appendChild(buildCard(repo, index)); });
+
+      status.textContent = matches.length
+        ? 'Showing ' + shown.length + ' of ' + plural(matches.length, 'repository', 'repositories')
+        : 'No repositories to show.';
+
+      if (!matches.length) {
+        var query = search.value.trim();
+        showMessage(
+          query ? 'No repositories match "' + query + '".' : 'No repositories match these filters.',
+          'Try another word or language, or reset the filters to see everything.',
+          'Reset filters',
+          resetFilters,
+          false
+        );
+      } else {
+        hideMessage();
+      }
+
+      var remaining = matches.length - shown.length;
+      moreButton.hidden = remaining <= 0;
+      moreButton.textContent = 'Show more (' + remaining + ' left)';
+    }
+
+    function resetFilters() {
+      search.value = '';
+      language.value = 'all';
+      sort.value = 'updated';
+      forks.checked = true;
+      visibleCount = PAGE_SIZE;
+      render();
+      search.focus();
+    }
+
+    function receive(data, time, isStale) {
+      isLoading = false;
+      hasFailed = false;
+      repos = data;
+      list.setAttribute('aria-busy', 'false');
+      toolbar.hidden = false;
+      renderSummary();
+      render();
+      renderMeta(time, isStale);
+    }
+
+    /* force = true skips the cache (Retry and Refresh) */
+    function load(force) {
+      if (isLoading) return;
+
+      var cached = readCache();
+      if (cached && !force && Date.now() - cached.time < CACHE_MS) {
+        receive(cached.repos, cached.time, false);
+        return;
+      }
+
+      showLoading();
+
+      request().then(function (data) {
+        var time = Date.now();
+        storage.setJSON(KEYS.repos, { time: time, repos: data });
+        receive(data, time, false);
+        if (force) toast('GitHub repositories refreshed.', 'success');
+      }).catch(function (error) {
+        isLoading = false;
+
+        // An old copy is better than an empty section
+        if (cached) {
+          receive(cached.repos, cached.time, true);
+          toast(describeError(error).title + ' Showing the copy saved earlier.', 'error');
+        } else {
+          showError(error);
+        }
+        hasFailed = true;   // after receive(), which clears it
+      });
+    }
+
+    /* --- Controls --- */
+
+    function onFilterChange() {
+      visibleCount = PAGE_SIZE;
+      render();
+    }
+
+    search.addEventListener('input', onFilterChange);
+    language.addEventListener('change', onFilterChange);
+    sort.addEventListener('change', onFilterChange);
+    forks.addEventListener('change', onFilterChange);
+
+    search.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && search.value) {
+        event.stopPropagation();
+        search.value = '';
+        onFilterChange();
+      }
+    });
+
+    messageAction.addEventListener('click', function () {
+      if (onMessageAction) onMessageAction();
+    });
+
+    moreButton.addEventListener('click', function () {
+      var firstNew = visibleCount;
+      visibleCount += PAGE_SIZE;
+      render();
+      // Move keyboard focus to the first newly revealed card
+      var cards = $$('.repo-card', list);
+      if (cards[firstNew]) cards[firstNew].focus();
+    });
+
+    // Recover on its own once the connection comes back
+    window.addEventListener('online', function () {
+      if (hasFailed) load(true);
+    });
+
+    document.addEventListener('github:refresh', function () { load(true); });
+
+    /* --- Start: only when the section is about to scroll into view --- */
+    if ('IntersectionObserver' in window) {
+      var observer = new IntersectionObserver(function (entries) {
+        if (!entries[0].isIntersecting) return;
+        observer.disconnect();
+        load(false);
+      }, { rootMargin: '600px 0px' });
+      observer.observe(section);
+    } else {
+      load(false);
+    }
+  }
+
+  /* ======================================================================
      19. ONLINE / OFFLINE NOTICES
      ====================================================================== */
   function initConnectionStatus() {
@@ -975,6 +1456,7 @@
     initCopyEmail();
     initBackToTop();
     initCommandPalette();
+    initGitHubRepos();
     initConnectionStatus();
     initResetPreferences();
     initYear();
